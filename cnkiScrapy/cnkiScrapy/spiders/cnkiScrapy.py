@@ -1,3 +1,4 @@
+
 import scrapy
 import datetime
 import urllib
@@ -106,6 +107,7 @@ class CNKISipder(scrapy.Spider):
             # items['referenceNum'] = result.css("span[class=KnowledgeNetcont] > a::text").extract_first()
             # items['downloadNum'] = result.css("span[class=downloadCount] > a::text").extract_first()
 
+            # items page
             # items['title'] = result.css("td > a[class=fz14]").xpath("string(.)").extract_first()
             # items['link'] = result.css("td > a[class=fz14]::attr(href)").extract_first()
             # items['author'] = result.css("td[class=author_flag] > a[class=KnowledgeNetLink]::text").extract()
@@ -114,6 +116,8 @@ class CNKISipder(scrapy.Spider):
             # items['referenceNum'] = result.css("span[class=KnowledgeNetcont] > a::text").extract_first()
             # items['downloadNum'] = result.css("span[class=downloadCount] > a::text").extract_first()
             # yield items
+
+            # enter into detail page
             items['link'] = result.css("td > a[class=fz14]::attr(href)").extract_first()
             yield response.follow(items['link'], self.parse_detail)
 
@@ -128,6 +132,9 @@ class CNKISipder(scrapy.Spider):
         yield {
             'title': extract_with_css('h2.title::text'),
             'author': extract_with_css('div.author span a::text'),
+            'reference-title': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(1)::text'),
+            'sub-reference-title': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(2)::text'),
             'intro': extract_with_css('#ChDivSummary::text'),
-            'pdflink': extract_with_css('#pdfDown')
+            'publicationDate': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(4)::text'),
+            'pdfLink': extract_with_css('#pdfDown')
         }

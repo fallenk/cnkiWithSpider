@@ -20,7 +20,8 @@ RETRY_ENABLED = True
 RETRY_HTTP_CODES = [500, 502, 503, 504, 400, 403, 404, 408]
 # 重试次数
 RETRY_TIMES = 5
-
+# 设置输出中文
+FEED_EXPORT_ENCODING = 'utf-8'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'cnkiScrapy (+http://www.yourdomain.com)'
