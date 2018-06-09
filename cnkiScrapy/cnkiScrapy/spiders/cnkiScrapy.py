@@ -5,12 +5,12 @@ import urllib
 import time
 from cnkiScrapy.items import CnkiscrapyItem
 from cnkiScrapy.items import CnkidetailItem
+import re
 
 class CNKISipder(scrapy.Spider):
     name = "cnki"
 
     # create request url, schedule parameter， use get_url() get final url
-
     # 2. generate the first request
     def createUrls(self):
 
@@ -87,7 +87,7 @@ class CNKISipder(scrapy.Spider):
     # 1. define Items container which was provided by Scrapy to save data some-like dictionary-like API and define words
     # 2. extract data
     def parse(self, response):
-        # vadlid code
+        # valid code
         # if "rurl" in str(requests_url):
         #     iden_code_url = str(requests_url).split("GET")[1].split(">")[0].strip()
         #     yield scrapy.Request(iden_code_url, meta={'cookiejar': response.meta['cookiejar']},
@@ -97,15 +97,6 @@ class CNKISipder(scrapy.Spider):
         detailItems = CnkidetailItem()
         for result in response.css('tr[bgcolor]'):
             # TODO link
-            # items['title'] = result.css("td > a[class=fz14]").xpath("string(.)").extract_first()
-            # items['author'] = result.css("td[class=author_flag] > a[class=KnowledgeNetLink]::text").extract()
-            # items['source'] = result.css("td >a[target=_blank > font[class=Mark]]::text").extract_first()
-            # # ctl00 > table > tbody > tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td:nth-child(5)
-            # items['publicationDate'] = result.css("td > table > tbody > tr:nth-child(2) > td:nth-child(5)::text").extract_first()
-            # # ctl00 > table > tbody > tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td:nth-child(6)
-            # items['dateBase'] = result.css('td > table > tbody > tr:nth-child(2) > td:nth-child(6)::text').extract_first()
-            # items['referenceNum'] = result.css("span[class=KnowledgeNetcont] > a::text").extract_first()
-            # items['downloadNum'] = result.css("span[class=downloadCount] > a::text").extract_first()
 
             # items page
             # items['title'] = result.css("td > a[class=fz14]").xpath("string(.)").extract_first()
@@ -126,15 +117,27 @@ class CNKISipder(scrapy.Spider):
             next_page = response.urljoin(next_page[0])
             yield scrapy.Request(next_page, meta={'cookiejar': response.meta['cookiejar']}, callback=self.parse,
                                  dont_filter=True)
+    # scrape detail page
     def parse_detail(self, response):
+        # TODO 判断日期
+        publicationDate = None
+        test_date = []
+        test_date.append(response.css('div.wxBaseinfo > p:nth-child(3)::text').extract_first())
+        test_date.append(response.css('div.wxBaseinfo > p:nth-child(4)::text').extract_first())
+        print("test_data------->", test_date)
+        for text in test_date:
+            if text is not None and re.search(r"(\d{4}-\d{1,2}-\d{1,2})", text) is not None:
+                publicationDate = re.search(r"(\d{4}-\d{1,2}-\d{1,2})", text).groups(0)[0]
+                print("publicationDate=====>", publicationDate)
+
         def extract_with_css(query):
             return response.css(query).extract_first()
         yield {
             'title': extract_with_css('h2.title::text'),
             'author': extract_with_css('div.author span a::text'),
             'reference-title': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(1)::text'),
-            'sub-reference-title': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(2)::text'),
+            # 'sub-reference-title': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(2)::text'),
             'intro': extract_with_css('#ChDivSummary::text'),
-            'publicationDate': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(4)::text'),
+            'publicationDate': publicationDate,
             'pdfLink': extract_with_css('#pdfDown')
         }
