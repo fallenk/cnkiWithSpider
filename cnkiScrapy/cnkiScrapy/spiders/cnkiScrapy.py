@@ -86,32 +86,32 @@ class CNKISipder(scrapy.Spider):
     # extract data
     # 1. define Items container which was provided by Scrapy to save data some-like dictionary-like API and define words
     # 2. extract data
-    def parse(self, response):
-        # valid code
-        # if "rurl" in str(requests_url):
-        #     iden_code_url = str(requests_url).split("GET")[1].split(">")[0].strip()
-        #     yield scrapy.Request(iden_code_url, meta={'cookiejar': response.meta['cookiejar']},
-        #                          callback=self.handleCode, dont_filter=True)
 
-        items = CnkiscrapyItem()
+    def parse(self, response):
+        # define list
+        itemList = []
+
         detailItems = CnkidetailItem()
         for result in response.css('tr[bgcolor]'):
             # TODO link
-
+            item = CnkiscrapyItem()
             # items page
-            # items['title'] = result.css("td > a[class=fz14]").xpath("string(.)").extract_first()
-            # items['link'] = result.css("td > a[class=fz14]::attr(href)").extract_first()
-            # items['author'] = result.css("td[class=author_flag] > a[class=KnowledgeNetLink]::text").extract()
-            # # items['source'] = result.css("td[class=cjfdyxyz]").xpath("string(a)").extract_first()
-            # # items['publicationDate'] = result.css("td[align] > a[target=_blank]::text").extract_first().split("/")[0]
+            item['title'] = result.css("td:nth-child(2) > a::text").extract_first()
+            item['author'] = result.css("td.author_flag > a::text").extract_first()
+            item['source'] = result.css("td:nth-child(4) > a > font::text").extract_first()
+            item['publicationDate'] = result.css("td:nth-child(5)::text").extract_first()
             # items['referenceNum'] = result.css("span[class=KnowledgeNetcont] > a::text").extract_first()
             # items['downloadNum'] = result.css("span[class=downloadCount] > a::text").extract_first()
-            # yield items
+            item['detailLink'] = response.urljoin(result.css("td:nth-child(9) > a::attr(href)").extract_first())
 
-            # enter into detail page
-            items['link'] = result.css("td > a[class=fz14]::attr(href)").extract_first()
-            yield response.follow(items['link'], self.parse_detail)
+            itemList.append(item)
+        # enter into detail page call back
+        # 遍历items_1天津爱了所有的分类
+        for item in itemList:
+            # loop the list, callback parse_detail, meta将这一层的数据传递到下一层
+            yield  scrapy.Request(url= item['detailLink'], meta = {'item_1': item}, callback= self.parse_detail)
 
+        # enten next page
         next_page = response.xpath("//div/a[text()='下一页']/@href").extract()
         if next_page:
             next_page = response.urljoin(next_page[0])
@@ -119,25 +119,11 @@ class CNKISipder(scrapy.Spider):
                                  dont_filter=True)
     # scrape detail page
     def parse_detail(self, response):
-        # TODO 判断日期
-        publicationDate = None
-        test_date = []
-        test_date.append(response.css('div.wxBaseinfo > p:nth-child(3)::text').extract_first())
-        test_date.append(response.css('div.wxBaseinfo > p:nth-child(4)::text').extract_first())
-        print("test_data------->", test_date)
-        for text in test_date:
-            if text is not None and re.search(r"(\d{4}-\d{1,2}-\d{1,2})", text) is not None:
-                publicationDate = re.search(r"(\d{4}-\d{1,2}-\d{1,2})", text).groups(0)[0]
-                print("publicationDate=====>", publicationDate)
-
-        def extract_with_css(query):
-            return response.css(query).extract_first()
-        yield {
-            'title': extract_with_css('h2.title::text'),
-            'author': extract_with_css('div.author span a::text'),
-            'reference-title': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(1)::text'),
-            # 'sub-reference-title': extract_with_css('div.wxInfo > div.wxBaseinfo > p:nth-child(2)::text'),
-            'intro': extract_with_css('#ChDivSummary::text'),
-            'publicationDate': publicationDate,
-            'pdfLink': extract_with_css('#pdfDown')
-        }
+        # pdfDownLink = response.css("#mainContent > div > div.head_cdmd > div:nth-child(2) > span:nth-child(1) > a:nth-child(3)::attr(href)").extract_first()
+        # print("pdfDownLink ==== >", pdfDownLink)
+        # return pdfDownLink
+        item = response.meta["item_1"]
+        pdfDownLink = response.urljoin(response.css("#mainContent > div > div.head_cdmd > div:nth-child(2) > span:nth-child(1) > a:nth-child(3)::attr(href)").extract_first())
+        item["pdfDownLink"] = pdfDownLink
+        #TODO pdf convert txt
+        yield item

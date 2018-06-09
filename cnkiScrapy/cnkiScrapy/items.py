@@ -12,13 +12,14 @@ class CnkiscrapyItem(scrapy.Item):
     # name = scrapy.Field()
     # pass
     title = scrapy.Field()
-    link = scrapy.Field()
+    detailLink = scrapy.Field()
     author = scrapy.Field()
     source = scrapy.Field()
     publicationDate = scrapy.Field()
     dateBase = scrapy.Field()
     referenceNum = scrapy.Field()
     downloadNum = scrapy.Field()
+    pdfDownLink = scrapy.Field()
 
 class CnkidetailItem(scrapy.Item):
     title = scrapy.Field()
