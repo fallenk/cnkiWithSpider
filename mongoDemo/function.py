@@ -19,18 +19,10 @@ key_three = ["腐败", "队伍", "群众", "扶贫", "食品", "生产", "依法
 
 # fun_1: 给到一个关键词，获得它首次出现的文章信息
 def fun_1(key_value):
-    '''
-    fun_1: 给到一个关键词，获得它首次出现的文章信息
-    :param key_value: 
-    :return
-    '''
     records = txt_set.find({"content": {'$regex': key_value}}).sort("publicDate").limit(1)
     for rec in records:
         print("keyword:" + key_value)
-        # print("_id:", rec["_id"])
-        # TODO some problems without title
-        # print("title: " + str(rec["title"]) + "\tDate: " + str(rec["publicDate"]))
-        print("_id: " + str(rec["_id"]))
+        print("title: " + rec['title'] + "\tDate: " + str(rec['publicDate']))
 
 
 # fun_2: 给到一个关键词， 给出它出现文章次数， 按年份给出文章数
@@ -67,7 +59,7 @@ def fun_4(key_value):
     keys.extend(key_one)
     keys.extend(key_two)
     keys.extend(key_three)
-	
+
     key_list = []
     for key in keys:
         if key == key_value:
@@ -76,11 +68,26 @@ def fun_4(key_value):
         txt_num = records.count()
         key_list.append((key, txt_num))
     key_list.sort(key=takeSecond, reverse=True)
+    print(key_value)
     print(key_list)
 
 
+
+def delDuplite():
+    records = txt_set.find().sort("publicDate")
+
+    for record in records:
+        # print(record)
+        record[""]
+    pass
+
+
 if __name__ == "__main__":
-    fun_1(key_one[1])
-    # fun_2(key_one[0])
+    # fun_1(key_one[0])
+    # print(txt_set.find_one({"title": "按照科学发展观的要求 推动欠发达地区更快更好地发展"}, {"_id": 0}))
+    # fun_2(key_one[1])
     # _ = fun_3(key_one[0], key_one[1])
     # fun_4(key_one[0])
+    delDuplite()
+    pass
+
