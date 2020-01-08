@@ -3,3 +3,4 @@ new.jl
 *.xml
 *.iml
 *.pyc
+.DS_Store
